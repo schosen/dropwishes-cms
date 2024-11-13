@@ -3,12 +3,18 @@
 import {getCliClient} from 'sanity/cli'
 import {faker} from '@faker-js/faker'
 import pLimit from 'p-limit'
-import type {SanityDocumentLike} from 'sanity'
+import type {SanityDocumentLike, FieldDefinition} from 'sanity'
+import {htmlToBlocks} from '@sanity/block-tools'
+import {Schema} from '@sanity/schema'
+import {JSDOM} from 'jsdom'
+import {schemaTypes} from '../schemaTypes'
+
 
 const client = getCliClient().withConfig({
   dataset: 'development'
 })
 // const client = getCliClient()
+
 const POST_COUNT = 10
 const CATEGORY_COUNT = 5
 const AUTHOR_COUNT = 4
@@ -18,6 +24,20 @@ const batchesArg = args.find((arg) => arg.startsWith('batches='))?.split('=')[1]
 const batches = batchesArg ? parseInt(batchesArg) : BATCHES_COUNT
 const limit = pLimit(1)
 
+const defaultSchema = Schema.compile({types: schemaTypes})
+const blockContentSchema = defaultSchema
+  .get('post')
+  .fields.find((field: FieldDefinition) => field.name === 'body').type
+
+// Create 2-5 paragraphs of fake block content
+function createFakeBlockContent() {
+  const html = Array.from({length: faker.number.int({min: 2, max: 5})})
+    .map(() => `<p>${faker.lorem.paragraph({min: 2, max: 5})}</p>`)
+    .join(``)
+  return htmlToBlocks(html, blockContentSchema, {
+    parseHtml: (html) => new JSDOM(html).window.document,
+  })
+}
 
 async function createData() {
   console.log(`Create new data with:`)
@@ -135,6 +155,7 @@ async function createData() {
               _ref: imageAsset._id,
             },
           },
+          body: createFakeBlockContent(),
           fake: true,
         })
       }
