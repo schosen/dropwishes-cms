@@ -40,6 +40,11 @@ export default defineType({
         },
       ],
     }),
+    defineField({
+      name: 'fake',
+      type: 'boolean',
+      hidden: true,
+    })
   ],
   preview: {
     select: {
