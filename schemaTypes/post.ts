@@ -54,6 +54,11 @@ export default defineType({
       title: 'Excerpt',
       type: 'string',
     }),
+      defineField({
+      name: 'fake',
+      type: 'boolean',
+      hidden: true,
+    }),
   ],
 
   preview: {
